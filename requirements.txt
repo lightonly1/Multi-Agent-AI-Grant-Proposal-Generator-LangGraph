@@ -1,0 +1,25 @@
+# requirements.txt
+# Grant Proposal AI — Capstone Project
+# Install with: pip install -r requirements.txt
+
+# Core LLM and agent framework
+langchain==0.2.16
+langchain-openai==0.1.25
+langchain-community==0.2.16
+langgraph==0.2.19
+
+# PDF parsing
+pypdf==4.3.1
+
+# Vector store (local FAISS — no cloud needed)
+faiss-cpu==1.8.0
+tiktoken==0.7.0
+
+# Web UI
+streamlit==1.38.0
+pandas==2.2.2
+plotly==5.24.1           # charts: radar, donut, gantt, bar, scatter
+
+# Export
+python-docx==1.1.2       # .docx proposal export
+python-dotenv==1.0.1     # load OPENAI_API_KEY from .env
