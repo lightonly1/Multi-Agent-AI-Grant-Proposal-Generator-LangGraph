@@ -3,7 +3,9 @@
 
 An enterprise-grade, privacy-focused Agentic AI System designed to automate the end-to-end generation, evaluation, and iterative refinement of rigorous academic and scientific research grant proposals.
 
-Developed as a flagship project within the HYSEA Project Drona 2.0 track, this architecture was successfully defended solo before a senior corporate executive evaluation panel from TCS and Tech Mahindra, receiving direct leadership commendations for system design, robust data extraction, and autonomous closed-loop execution.
+Project developed as part of HYSEA Project Drona 2.0.
+
+Validated through multiple domain-specific grant proposal generation and evaluation scenarios covering Solar Energy and Advanced Materials research domains.
 
 ---
 
