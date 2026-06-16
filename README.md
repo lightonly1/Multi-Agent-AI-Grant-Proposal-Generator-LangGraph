@@ -1,4 +1,4 @@
-```markdown
+
 # AI Research Grant Proposal Generator & Evaluator
 
 An enterprise-grade, privacy-focused Agentic AI System designed to automate the end-to-end generation, evaluation, and iterative refinement of rigorous academic and scientific research grant proposals.
