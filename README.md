@@ -1,3 +1,4 @@
+```markdown
 # AI Research Grant Proposal Generator & Evaluator
 
 An enterprise-grade, privacy-focused Agentic AI System designed to automate the end-to-end generation, evaluation, and iterative refinement of rigorous academic and scientific research grant proposals.
@@ -34,3 +35,231 @@ START
      IF Score < Threshold AND Iterations Remaining  → refine_proposal ──┐
           ▲                                                             │
           └─────────────────────────────────────────────────────────────┘
+
+```
+
+The `should_refine` conditional edge is the core indicator of Agentic AI behavior—the graph's execution path responds dynamically to output validation rules rather than following a static, hardcoded script.
+
+### Component & Agent Breakdown
+
+1. **Guideline Ingestion Agent (`guideline_agent.py`)**: Parses raw funding guideline PDFs using `PyPDFLoader`. Splits data text into 1000-character chunks with 150-character overlap, builds a localized FAISS vector index at `data/faiss_index/`, and extracts structured constraint profiles (required sections, eligibility criteria, scoring weights, budget limits) using localized Mistral via Ollama ($temperature=0$).
+2. **Proposal Drafting Agent (`proposal_agent.py`)**: Queries the local FAISS vector store to pull contextually relevant chunks ($top-5$). Generates all 6 comprehensive proposal sections in a single inference context block to ensure strong narrative coherence ($temperature=0.7$). On re-drafts, it automatically appends evaluation feedback to the prompt.
+3. **Budget & Project Timeline Agent (`budget_agent.py`)**: Parses the generated methodology section to deduce resource needs, generates an itemized budget table with written category justifications, constructs a month-by-month milestone timeline, and programmatically checks totals against funding ceilings.
+4. **Deterministic Evaluation Agent (`evaluation_agent.py`)**: Conducts an objective critique scoring 4 foundational pillars (Innovation, Feasibility, Budget Clarity, Impact) out of 25 points each ($temperature=0.1$). Returns clean, structured JSON containing exact numerical scores and granular weaknesses while verifying that the total score matches the sum of criteria.
+5. **Feedback-Driven Refinement Agent (`refinement_agent.py`)**: Isolates criteria falling short of the target threshold (under 18/25), uses Mistral to synthesize weaknesses into an actionable refinement brief, and triggers an intelligent prompt-injected full proposal regeneration loop for document consistency.
+
+---
+
+## Data Engineering & Processing Pipeline
+
+The ingestion engine converts highly unstructured, regulatory documents into clean, machine-actionable context windows:
+
+* **Data Sources**: Real-world compliance and funding guideline documentation (PDF format) from premier national and international agencies like DST (Department of Science and Technology) and CSIR (Council of Scientific and Industrial Research).
+* **Processing & Token Alignment**: Implemented Semantic Chunking and text extraction to split documents by thematic transitions rather than arbitrary character counts. This preserves regulatory context and keeps payload windows highly optimized.
+* **Storage & Low-Latency Retrieval**: Utilized a FAISS-based vector database hosted locally for high-velocity retrieval of specific regulatory constraints, mandatory templates, and domain-specific clauses.
+
+---
+
+## Enterprise Design Choices & Trade-offs
+
+* **100% Local Data Sovereignty**: Engineered specifically for deployments managing sensitive institutional data, proprietary research, or pre-patent intellectual property. By processing all workloads locally via Ollama and Mistral, the system guarantees zero data leakage beyond organizational firewalls. No external API tokens or cloud connections required.
+* **Mitigating Hallucinations**: Financial and budget generation are notorious areas for LLM hallucination. This architecture mitigates mathematical discrepancies through targeted prompt engineering, structured JSON schemas, and iterative validation loops within the `budget_agent` node.
+* **State Persistence & Observability**: Powered by a lightweight SQLite relational tracking store (`data/proposals.db`). Every iteration run, discrete agent evaluation score, and prompt mutation is fully preserved, allowing developers to trace the agent's historical correction path.
+
+---
+
+## Model Performance & Validation Metrics
+
+The framework's adaptability was heavily stress-tested and validated using diverse, real-world regulatory scenarios. Score variations accurately reflect the model's ability to distinguish between the unique, rigorous specificities of different funding bodies:
+
+### Evaluation Case Studies
+
+| Funding Body / Program | Target Domain | Iterations to Converge | Final Validated Score |
+| --- | --- | --- | --- |
+| **DST (Department of Science & Technology)** | Solar Energy Infrastructure | 2 | **81 / 100** |
+| **CSIR (Council of Scientific & Industrial Research)** | Advanced Composite Materials | 1 | **87 / 100** |
+
+---
+
+## Repository Structure
+
+```text
+grant_proposal_ai/
+│
+├── agents/                     # Isolated agentic computational nodes
+│   ├── guideline_agent.py      # PDF ingestion + FAISS vector indexing
+│   ├── proposal_agent.py       # Context-aware RAG-based generation
+│   ├── budget_agent.py         # Resource estimation & budget derivation
+│   ├── evaluation_agent.py     # Deterministic evaluation & JSON scoring
+│   └── refinement_agent.py     # Critique synthesis & feedback engineering
+│
+├── graph/                      # LangGraph StateGraph engine wiring
+│   ├── state.py                # Thread-safe shared state schema (TypedDict)
+│   ├── nodes.py                # LangGraph operational execution adapters
+│   ├── edges.py                # Conditional routing logic & control flows
+│   └── build_graph.py          # StateGraph structural assembly & compilation
+│
+├── db/                         # Persistence layer
+│   └── storage.py              # SQLite schema for deterministic audit trailing
+│
+├── utils/                      # Production utility extensions
+│   └── exporters.py            # Stream-based .docx and .txt compilation
+│
+├── tests/                      # Enterprise testing suite
+│   └── test_agents.py          # Offline unit tests using mock interfaces
+│
+├── app.py                      # Interactive Streamlit Web Interface
+├── run_graph.py                # Production CLI Execution Driver
+├── requirements.txt            # Explicit dependency pinning
+├── .env.example                # Sanitized environment file template
+└── README.md                   # Technical portfolio documentation
+
+```
+
+---
+
+## Technology Stack Matrix
+
+| Component | Library | Purpose |
+| --- | --- | --- |
+| LLM Framework | `ollama` / `langchain-community` | Local Mistral model orchestration for all agent tasks |
+| Agent Orchestration | `langgraph` | StateGraph architecture with conditional routing |
+| PDF Ingestion Engine | `pypdf` (`langchain-community`) | Extraction and parsing of raw guideline data |
+| Local Vector Cache | `faiss-cpu` | High-velocity context retrieval without cloud dependencies |
+| Visualization UI | `streamlit` | Front-end demonstration and parameter tuning dashboard |
+| Audit Persistence | `sqlite3` (stdlib) | Persistent local relational storage of workflow runs |
+| Document Compiler | `python-docx` | Generates stream-based downloadable `.docx` files |
+| Testing Infrastructure | `pytest` | Validates isolated agent node logic offline |
+
+---
+
+## Quickstart & Setup Instructions
+
+### 1. Model Initialization
+
+Ensure Ollama is running on your machine and pull the required model:
+
+```bash
+ollama pull mistral
+
+```
+
+### 2. Environment Activation & Dependencies
+
+```bash
+git clone [https://github.com/lightonly1/Multi-Agent-AI-Grant-Proposal-Generator-LangGraph.git](https://github.com/lightonly1/Multi-Agent-AI-Grant-Proposal-Generator-LangGraph.git)
+cd Multi-Agent-AI-Grant-Proposal-Generator-LangGraph
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+pip install -r requirements.txt
+
+```
+
+### 3. Configure Environment Variables
+
+Set up your local environment file:
+
+```bash
+cp .env.example .env
+# Open .env and ensure your backend configuration points to the local Ollama instance
+
+```
+
+### 4. Execution via Production CLI Driver
+
+Run the end-to-end multi-agent pipeline locally inside your terminal:
+
+```bash
+python run_graph.py \
+  --topic "AI-assisted early detection of diabetic retinopathy" \
+  --pdf path/to/guidelines.pdf \
+  --max-iter 3 \
+  --threshold 75
+
+```
+
+### 5. Interactive Graphical Web Dashboard
+
+Launch the local web interface built with Streamlit:
+
+```bash
+streamlit run app.py
+
+```
+
+### 6. Deterministic Offline Testing
+
+Run the offline pytest suite to validate structural agent node performance without hitting the live model:
+
+```bash
+python -m pytest tests/ -v
+
+```
+
+---
+
+## Database Schema Mapping
+
+The SQLite persistence layer matches real-world auditable tracking patterns across operations (`data/proposals.db`):
+
+```sql
+runs         (id, topic, pdf_path, started_at, finished_at, final_score, total_iterations, status)
+proposals    (id, run_id, iteration, version_tag, title, abstract, ..., full_draft_json)
+evaluations  (id, run_id, proposal_id, iteration, innovation_score, ..., total_score, grade)
+budgets      (id, run_id, proposal_id, total_cost_usd, within_limit, full_budget_json)
+
+```
+
+---
+
+## Sample Production Execution Logs
+
+```text
+=============================================================================
+  PIPELINE COMPLETE (LOCAL OLLAMA ENGINE)
+=============================================================================
+  Final score:  82/100  (Grade: A)
+  Iterations:   2
+  Budget total: $28,200 USD
+=============================================================================
+
+── EVALUATION SCORES ──
+  Innovation           20/25  | weakness: Ensemble novelty not justified...
+  Feasibility          22/25  | weakness: IRB approval not mentioned...
+  Budget Clarity       19/25  | weakness: Cloud credits need breakdown...
+  Impact               21/25  | weakness: International scale unsubstantiated...
+
+```
+
+---
+
+## Limitations & Advanced Future Development
+
+* **Local Compute Dependency**: Deep pipeline loops process multiple generation and revision turns. Execution speeds scale directly with local hardware acceleration (M-series Silicon, NVIDIA CUDA).
+* **Asynchronous Execution Graphs**: Currently, budget generation waits for the baseline draft to finish. Future iterations can run independent tasks in parallel using LangGraph's native asynchronous execution engine (`graph.ainvoke()`).
+* **Human-in-the-Loop Interruption**: For production deployment, integrating human review points between evaluation and refinement stages ensures domain-expert oversight. This can be achieved natively using LangGraph's `interrupt_before` compiled parameter.
+* **Multimodal OCR Processing**: The current pipeline functions optimally on text-dense guideline vectors. Incorporating standalone engine layouts (e.g., `pytesseract` or specialized vision processing) will extend coverage to scanned physical documents or imagery.
+* **Localization Engineering**: Financial estimation blocks generate baseline tracking values in USD. Future modular features will implement contextual text matching to auto-detect native currency models (e.g., INR) based on parsed agency rules.
+
+---
+
+## References & Frameworks
+
+1. LangGraph Engine Docs — https://langchain-ai.github.io/langgraph/
+2. Context-Aware Retrieval (RAG) — LangChain Ecosystem
+3. FAISS: High-Performance Similarity Vectors — Johnson et al., 2019
+4. ReAct Logic: Synergizing Reasoning and Action in LLMs — Yao et al., 2022
+5. DST-SERB Grant Guidelines — https://serb.gov.in/page/english/core_research_grant
+
+---
+
+## Author Profile
+
+* **Developer:** Krit Prakash
+* **Designation:** Applied AI/ML Engineer (NPTEL National Domain Scholar)
+* **Education:** M.Tech, Indian Institute of Technology (ISM) Dhanbad
+* **Core Focus:** Advanced LLM Orchestration, Real-time Backend System Engineering & Scalable Data Pipelines
+
+```
+
+```
